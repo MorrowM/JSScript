@@ -7,7 +7,7 @@ import qualified Data.Map as Map
 
 
 type VarTable = Map.Map Ident Any 
-type EvalM a = ExceptT Text (StateT VarTable IO) a
+type EvalM = ExceptT Text (StateT VarTable IO)
 newtype Foreign = Foreign ([Any] -> EvalM ())
 
 instance Show Foreign where

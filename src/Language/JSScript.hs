@@ -15,19 +15,24 @@ import Language.JSScript.Interpreter
 import Language.JSScript.Parser
 import System.Environment
 import Text.Parsec
+import System.Console.Haskeline
 
 main :: IO ()
 main = do
-  [f] <- getArgs
-  toParse <- readFile f
-  let mstmt = parse stmt f ("{ " <> toParse <> " }")
-  case mstmt of
-    Left err -> print err
-    Right stmt -> void $flip execStateT stdlib $ do
-      res <- runExceptT $ exec stmt
-      case res of
-        Left err -> lift $ putStrLn $ "error: " <> unpack err
-        Right _ -> pure ()
+  mf <- getArgs
+  case mf of
+    [] -> void $ execStateT interactive stdlib
+    (f:_) -> do
+      toParse <- readFile f
+      let mstmt = parse stmt f ("{ " <> toParse <> " }")
+      case mstmt of
+        Left err -> print err
+        Right stmt -> void $ flip execStateT stdlib $ do
+          res <- runExceptT $ exec stmt
+          case res of
+            Left err -> lift $ putStrLn $ "error: " <> unpack err
+            Right _ -> pure ()
+  
 
 stdlib :: VarTable
 stdlib =
@@ -49,3 +54,33 @@ anyToString (ABool x) = show x
 anyToString (ADouble x) = show x
 anyToString (AText x) = unpack x
 anyToString AFunc {} = "<function>"
+
+handleErrorsInteractive_ :: MonadIO m => ExceptT Text m () -> InputT m ()
+handleErrorsInteractive_ e = do
+  res <- lift $ runExceptT e
+  case res of
+    Left err -> outputStrLn $ unpack err
+    Right res -> pure res
+
+handleErrorsInteractive :: MonadIO m => ExceptT Text m Any -> InputT m ()
+handleErrorsInteractive e = do
+  res <- lift $ runExceptT e
+  case res of
+    Left err -> outputStrLn $ "error: " <> unpack err
+    Right res -> outputStrLn $ anyToString res
+
+
+interactive :: StateT VarTable IO ()
+interactive = runInputT defaultSettings loop
+  where 
+    loop :: InputT (StateT VarTable IO) ()
+    loop = do
+      line <- getInputLine "> "
+      case line of
+        Nothing -> pure ()
+        Just inp -> case parse stmt "" inp of
+          Right s -> handleErrorsInteractive_ $ exec s
+          Left _ -> case parse expr "" inp of
+            Left _ -> outputStrLn "error: invalid syntax"
+            Right ex -> handleErrorsInteractive (eval ex)
+      loop 
