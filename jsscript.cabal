@@ -1,0 +1,50 @@
+cabal-version:       2.4
+
+name:                jsscript
+version:             0.1.0.0
+synopsis:            A simple scripting language
+-- description:
+homepage:            https://github.com/morrowm/jsscript
+bug-reports:         https://github.com/morrowm/jsscript/issues
+license:             BSD-3-Clause
+license-file:        LICENSE
+author:              Morrow
+maintainer:          themorrowm@gmail.com
+-- copyright:
+category:            Language
+extra-source-files:  CHANGELOG.md
+
+library
+  exposed-modules:
+    Language.JSScript
+    , Language.JSScript.AST
+    , Language.JSScript.Parser
+    , Language.JSScript.Interpreter
+  -- other-modules:
+  -- other-extensions:
+  build-depends:       base ^>=4.13.0.0
+    , text
+    , containers
+    , parsec
+    , transformers
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  default-extensions:
+    OverloadedStrings
+    , LambdaCase
+    , TypeApplications
+
+executable jsscript
+  main-is:             Main.hs
+  -- other-modules:
+  -- other-extensions:
+  build-depends:       base ^>=4.13.0.0, jsscript
+  hs-source-dirs:      app
+  default-language:    Haskell2010
+
+test-suite jsscript-test
+  default-language:    Haskell2010
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             MyLibTest.hs
+  build-depends:       base ^>=4.13.0.0
