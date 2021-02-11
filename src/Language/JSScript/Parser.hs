@@ -35,26 +35,37 @@ lexer =
           ]
       }
 
+ident :: Parser Text
 ident = pack <$> P.identifier lexer
 
+litText :: Parser Text
 litText = pack <$> P.stringLiteral lexer
 
+litInt :: Parser Integer
 litInt = P.integer lexer
 
+litDouble :: Parser Double
 litDouble = P.float lexer
 
+symbol :: String -> Parser String
 symbol = P.symbol lexer
 
+lexeme :: Parser a -> Parser a
 lexeme = P.lexeme lexer
 
+whiteSpace :: Parser ()
 whiteSpace = P.whiteSpace lexer
 
+parens :: Parser a -> Parser a
 parens = P.parens lexer
 
+braces :: Parser a -> Parser a
 braces = P.braces lexer
 
+semi :: Parser String
 semi = P.semi lexer
 
+commaSep :: Parser a -> Parser [a]
 commaSep = P.commaSep lexer
 
 argList :: Parser ArgList

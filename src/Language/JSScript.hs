@@ -1,4 +1,4 @@
-module Language.JSScript (main) where
+module Language.JSScript where
 
 import Control.Monad
 import Control.Monad.IO.Class
@@ -13,26 +13,26 @@ import qualified Data.Text as T
 import Language.JSScript.AST
 import Language.JSScript.Interpreter
 import Language.JSScript.Parser
+import System.Console.Haskeline
 import System.Environment
 import Text.Parsec
-import System.Console.Haskeline
 
 main :: IO ()
 main = do
   mf <- getArgs
   case mf of
     [] -> void $ execStateT interactive stdlib
-    (f:_) -> do
+    (f : _) -> do
       toParse <- readFile f
-      let mstmt = parse stmt f ("{ " <> toParse <> " }")
-      case mstmt of
+      let mstmts = parse (many stmt <* eof) f toParse
+      case mstmts of
         Left err -> print err
-        Right stmt -> void $ flip execStateT stdlib $ do
-          res <- runExceptT $ exec stmt
-          case res of
-            Left err -> lift $ putStrLn $ "error: " <> unpack err
-            Right _ -> pure ()
-  
+        Right stmts -> void $
+          flip execStateT stdlib $ do
+            res <- runExceptT $ traverse_ exec stmts
+            case res of
+              Left err -> lift $ putStrLn $ "error: " <> unpack err
+              Right _ -> pure ()
 
 stdlib :: VarTable
 stdlib =
@@ -69,18 +69,17 @@ handleErrorsInteractive e = do
     Left err -> outputStrLn $ "error: " <> unpack err
     Right res -> outputStrLn $ anyToString res
 
-
 interactive :: StateT VarTable IO ()
 interactive = runInputT defaultSettings loop
-  where 
+  where
     loop :: InputT (StateT VarTable IO) ()
     loop = do
       line <- getInputLine "> "
       case line of
         Nothing -> pure ()
-        Just inp -> case parse stmt "" inp of
-          Right s -> handleErrorsInteractive_ $ exec s
-          Left _ -> case parse expr "" inp of
+        Just inp -> case parse (many stmt <* eof) "" inp of
+          Right s -> handleErrorsInteractive_ $ exec (StmtBlock s)
+          Left _ -> case parse (expr <* eof) "" inp of
             Left _ -> outputStrLn "error: invalid syntax"
             Right ex -> handleErrorsInteractive (eval ex)
-      loop 
+      loop

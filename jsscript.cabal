@@ -14,7 +14,15 @@ maintainer:          themorrowm@gmail.com
 category:            Language
 extra-source-files:  CHANGELOG.md
 
+common extensions
+  default-extensions:
+    OverloadedStrings
+    , LambdaCase
+    , TypeApplications
+
 library
+  import:
+    extensions
   exposed-modules:
     Language.JSScript
     , Language.JSScript.AST
@@ -30,12 +38,11 @@ library
     , haskeline >= 0.8
   hs-source-dirs:      src
   default-language:    Haskell2010
-  default-extensions:
-    OverloadedStrings
-    , LambdaCase
-    , TypeApplications
+
 
 executable jsscript
+  import:
+    extensions
   main-is:             Main.hs
   -- other-modules:
   -- other-extensions:
@@ -43,7 +50,24 @@ executable jsscript
   hs-source-dirs:      app
   default-language:    Haskell2010
 
+executable jssbot
+  import:
+    extensions
+  main-is:             Main.hs
+  -- other-modules:
+  -- other-extensions:
+  build-depends:       base ^>=4.13.0.0
+    , jsscript
+    , discord-haskell
+    , transformers
+    , text
+    , parsec
+  hs-source-dirs:      bot
+  default-language:    Haskell2010
+
 test-suite jsscript-test
+  import:
+    extensions
   default-language:    Haskell2010
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test

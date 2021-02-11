@@ -1,13 +1,14 @@
 module Language.JSScript.AST where
 
-import Data.Text (Text)
-import Control.Monad.Trans.State
 import Control.Monad.Trans.Except
+import Control.Monad.Trans.State
 import qualified Data.Map as Map
+import Data.Text (Text)
 
+type VarTable = Map.Map Ident Any
 
-type VarTable = Map.Map Ident Any 
 type EvalM = ExceptT Text (StateT VarTable IO)
+
 newtype Foreign = Foreign ([Any] -> EvalM ())
 
 instance Show Foreign where
@@ -21,6 +22,7 @@ type Ident = Text
 type Block = [Stmt]
 
 type ArgList = [Ident]
+
 type ExprList = [Expr]
 
 data Lit
