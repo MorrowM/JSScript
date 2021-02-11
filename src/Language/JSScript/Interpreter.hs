@@ -69,6 +69,35 @@ eval (ExprSum x y) =
     (AText a, ABool b) -> pure . AText $ a <> (if b then "true" else "false")
     (AText a, ADouble b) -> pure . AText $ a <> showt b
     (AText a, AText b) -> pure . AText $ a <> b
+eval (ExprDiv x y) =
+  (,) <$> eval x <*> eval y >>= \case
+    (_, AFunc {}) -> throwE "cannot divide value with function"
+    (AFunc {}, _) -> throwE "cannot divide function with value"
+    (AInt a, AInt b) -> pure . ADouble $ (fromIntegral a / fromIntegral b)
+    (AInt a, ABool b) -> pure . ADouble $ fromIntegral a / (fromIntegral $ fromEnum b)
+    (AInt a, ADouble b) -> pure . ADouble $ fromIntegral a / b 
+    (AInt a, AText b) ->
+      let (whole, frac) = properFraction (fromIntegral a)
+       in pure . AText $ T.concat (replicate whole (T.reverse b)) <> T.take (floor $ fromIntegral (T.length $ T.reverse b) * frac) (T.reverse b) 
+    (ABool a, AInt b) -> pure . ADouble $ (fromIntegral $ fromEnum a) / fromIntegral b 
+    (ABool a, ABool b) -> pure . ABool $ a /= b 
+    (ABool a, ADouble b) -> pure . ADouble $ fromIntegral (fromEnum a) / b 
+    (ABool a, AText b) -> pure . AText $ if a then "" else b 
+    (ADouble a, AInt b) -> pure . ADouble $ a / fromIntegral b 
+    (ADouble a, ABool b) -> pure . ADouble $ a / fromIntegral (fromEnum b) 
+    (ADouble a, ADouble b) -> pure . ADouble $ a/b 
+    (ADouble a, AText b) ->
+      let (whole, frac) = properFraction (a)
+       in pure . AText $ T.concat (replicate whole (T.reverse b)) <> T.take (floor $ fromIntegral (T.length $ T.reverse b) * frac) (T.reverse b) 
+    (AText a, AInt b) ->
+      let c = fromIntegral b
+          (whole, frac) = properFraction (1/c)
+       in pure . AText $ T.concat (replicate whole a) <> T.take (floor $ fromIntegral (T.length a) * frac) a 
+    (AText a, ABool b) -> pure . AText $ (if b then "true" else "false") <> a
+    (AText a, ADouble b) ->
+      let (whole, frac) = properFraction (1/b)
+       in pure . AText $ T.concat (replicate whole a) <> T.take (floor $ fromIntegral (T.length a) * frac) a 
+    (AText a, AText b) -> pure . AText $ T.reverse $ T.concatMap (\c -> T.singleton c <> a) b 
 eval (ExprProd x y) =
   (,) <$> eval x <*> eval y >>= \case
     (_, AFunc {}) -> throwE "cannot multiply value with function"

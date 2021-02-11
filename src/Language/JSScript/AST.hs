@@ -50,6 +50,7 @@ data Expr
   | ExprVar Ident
   | ExprFuncCall Ident ExprList
   | ExprSum Expr Expr
+  | ExprDiv Expr Expr
   | ExprProd Expr Expr
   | ExprEqual Expr Expr
   | ExprNEqual Expr Expr

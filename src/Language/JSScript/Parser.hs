@@ -31,7 +31,8 @@ lexer =
             "*",
             "==",
             "!=",
-            "="
+            "=",
+            "/"
           ]
       }
 
@@ -88,7 +89,8 @@ expr = exprEqual
     exprParens = parens expr
     exprSimple = exprLit <|> try exprFuncCall <|> exprVar <|> exprParens
     exprProd = foldr1 ExprProd <$> sepBy1 exprSimple (symbol "*")
-    exprSum = foldr1 ExprSum <$> sepBy1 exprProd (symbol "+")
+    exprDiv = foldr1 ExprDiv <$> sepBy1 exprProd (symbol "/")
+    exprSum = foldr1 ExprSum <$> sepBy1 exprDiv (symbol "+")
     exprNEqual = foldr1 ExprNEqual <$> sepBy1 exprSum (symbol "!=")
     exprEqual = foldr1 ExprEqual <$> sepBy1 exprNEqual (symbol "==")
 
