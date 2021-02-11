@@ -52,7 +52,7 @@ anyToString :: Any -> String
 anyToString (AInt x) = show x
 anyToString (ABool x) = show x
 anyToString (ADouble x) = show x
-anyToString (AText x) = unpack x
+anyToString (AText x) = show x
 anyToString AFunc {} = "<function>"
 
 handleErrorsInteractive_ :: MonadIO m => ExceptT Text m () -> InputT m ()
