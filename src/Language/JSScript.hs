@@ -38,6 +38,7 @@ stdlib :: VarTable
 stdlib =
   Map.fromList
     [ ("print", printFunc)
+    , ("globals", globalsFunc)
     ]
 
 printFunc :: Any
@@ -47,6 +48,15 @@ printFunc =
     [ StmtForeign [ExprVar "x"] (Foreign $ liftIO . traverse_ (putStrLn . anyToString))
     ]
     (ExprLit $ LitBool True)
+
+globalsFunc :: Any
+globalsFunc =
+  AFunc 
+    []
+    [StmtForeign [] (Foreign $ const $ do 
+      g <- fmap anyToString <$> lift get
+      exec $ StmtDeclare "globals_var" (ExprLit $ LitText $ showt g))]
+    (ExprVar "globals_var")
 
 anyToString :: Any -> String
 anyToString (AInt x) = show x

@@ -43,8 +43,8 @@ eval (ExprFuncCall f exprs) = do
   when (la /= le) $
     throwE ("function " <> f <> " takes " <> showt la <> " parameters, but " <> showt le <> " were passed")
   vtable <- lift get
-  let funcScope = Map.fromList (zip arglist vals)
-  lift $ put funcScope
+  let funcScope = (`Map.union` Map.fromList (zip arglist vals))
+  lift $ modify funcScope
   traverse_ exec stmts
   res <- eval ret
   lift $ put vtable

@@ -63,3 +63,11 @@ data Any
   | AText Text
   | AFunc ArgList Block Expr
   deriving (Eq, Show)
+
+anyToExpr :: Any -> Expr
+anyToExpr = \case
+  AInt x -> ExprLit $ LitInt x
+  ABool x -> ExprLit $ LitBool x
+  ADouble x -> ExprLit $ LitDouble x
+  AText x -> ExprLit $ LitText x
+  AFunc {} -> ExprLit $ LitText "<function>"

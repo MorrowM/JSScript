@@ -95,7 +95,7 @@ expr = exprEqual
     exprEqual = foldr1 ExprEqual <$> sepBy1 exprNEqual (symbol "==")
 
 stmt :: Parser Stmt
-stmt = block <|> declare <|> try ifstmt <|> while <|> breakstmt <|> func <|> returnstmt <|> try assign <|> funcCall
+stmt = block <|> try declare <|> try ifstmt <|> try while <|> try breakstmt <|> try func <|> try returnstmt <|> try assign <|> funcCall
   where
     block = StmtBlock <$> braces (many stmt)
     declare = StmtDeclare <$> (symbol "var" *> ident) <*> (symbol "=" *> expr <* semi)
