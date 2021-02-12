@@ -43,6 +43,7 @@ data Stmt
   | StmtFuncCall Ident ExprList
   | StmtBreak
   | StmtForeign ExprList Foreign
+  | StmtImport FilePath 
   deriving (Eq, Show)
 
 data Expr

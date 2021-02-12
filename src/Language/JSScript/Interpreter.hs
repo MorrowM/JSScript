@@ -11,6 +11,9 @@ import Data.Maybe
 import Data.Text (Text, pack)
 import qualified Data.Text as T
 import Language.JSScript.AST
+import Control.Monad.IO.Class
+import Text.Parsec
+import Language.JSScript.Parser
 
 showt :: Show a => a -> Text
 showt = pack . show
@@ -194,3 +197,9 @@ exec (StmtFuncCall f exprs) = do
   traverse_ exec stmts
 exec StmtBreak = pure () -- TODO breaks are fucked
 exec (StmtForeign exprs (Foreign f)) = traverse eval exprs >>= f
+exec (StmtImport modu) = do
+  let filename = modu <> ".jss"
+  contents <- liftIO $ readFile filename
+  case parse (many stmt <* eof) filename contents of
+    Left err -> throwE $ "parse error while importing " <> pack modu <> ":\n" <> showt err
+    Right stmts -> traverse_ exec stmts
