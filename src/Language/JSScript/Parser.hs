@@ -33,7 +33,8 @@ lexer =
             "!=",
             "=",
             "/"
-          ]
+          ],
+        P.identLetter = alphaNum <|> oneOf "_'-"
       }
 
 ident :: Parser Text
