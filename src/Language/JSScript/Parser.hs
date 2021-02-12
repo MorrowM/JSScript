@@ -107,4 +107,4 @@ stmt = block <|> try declare <|> try ifstmt <|> try while <|> try breakstmt <|> 
     returnstmt = StmtReturn <$> (symbol "return" *> expr <* semi)
     funcCall = StmtFuncCall <$> ident <*> exprList <* semi
     breakstmt = StmtBreak <$ (symbol "break" *> semi)
-    importstmt = StmtImport <$> (symbol "import" *> many (noneOf ";") <* semi)
+    importstmt = StmtImport <$> (symbol "import" *> many1 alphaNum <* semi)
