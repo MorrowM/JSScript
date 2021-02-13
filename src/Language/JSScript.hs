@@ -78,7 +78,7 @@ globalsFunc =
 
 anyToString :: Any -> String
 anyToString (AInt x) = show x
-anyToString (ABool x) = show x
+anyToString (ABool x) = if x then "true" else "false"
 anyToString (ADouble x) = show x
 anyToString (AText x) = show x
 anyToString AFunc {} = "<function>"
