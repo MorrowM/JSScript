@@ -56,6 +56,7 @@ eventHandler (MessageCreate m) = do
         dis <- ask
         let actions = mapMaybe parseBlock blocks
             prog = traverse (evalToDiscord dis (messageChannel m)) actions
+        stdlib <- liftIO stdlibIO
         merr <- liftIO $ timeout (10 ^ 7) $ evalStateT (runExceptT prog) stdlib
         case merr of
           Nothing -> void $ restCall $ CreateMessage (messageChannel m) "```[computation timed out]```"

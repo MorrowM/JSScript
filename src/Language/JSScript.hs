@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.JSScript where
 
 import Control.Monad
@@ -5,6 +7,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.State
+import Data.FileEmbed
 import Data.Foldable
 import Data.Functor
 import qualified Data.Map as Map
@@ -20,6 +23,7 @@ import Text.Parsec
 main :: IO ()
 main = do
   mf <- getArgs
+  stdlib <- stdlibIO
   case mf of
     [] -> void $ execStateT interactive stdlib
     (f : _) -> do
@@ -34,12 +38,21 @@ main = do
               Left err -> lift $ putStrLn $ "error: " <> unpack err
               Right _ -> pure ()
 
-stdlib :: VarTable
-stdlib =
-  Map.fromList
-    [ ("print", printFunc)
-    , ("globals", globalsFunc)
-    ]
+stdlibStr :: String
+stdlibStr = $(embedStringFile "stdlib/prelude.jss")
+
+stdlibIO :: IO VarTable
+stdlibIO = do
+  Right stmts <- pure $ parse (many stmt <* eof) "" stdlibStr
+  vtable <- flip execStateT Map.empty $ do
+    Right res <- runExceptT $ traverse_ exec stmts
+    pure ()
+  pure $
+    vtable
+      `Map.union` Map.fromList
+        [ ("print", printFunc),
+          ("globals", globalsFunc)
+        ]
 
 printFunc :: Any
 printFunc =
@@ -51,11 +64,16 @@ printFunc =
 
 globalsFunc :: Any
 globalsFunc =
-  AFunc 
+  AFunc
     []
-    [StmtForeign [] (Foreign $ const $ do 
-      g <- fmap anyToString <$> lift get
-      exec $ StmtDeclare "globals_var" (ExprLit $ LitText $ showt g))]
+    [ StmtForeign
+        []
+        ( Foreign $
+            const $ do
+              g <- fmap anyToString <$> lift get
+              exec $ StmtDeclare "globals_var" (ExprLit $ LitText $ showt g)
+        )
+    ]
     (ExprVar "globals_var")
 
 anyToString :: Any -> String

@@ -12,7 +12,9 @@ author:              Morrow
 maintainer:          themorrowm@gmail.com
 -- copyright:
 category:            Language
-extra-source-files:  CHANGELOG.md
+extra-source-files:  
+  CHANGELOG.md
+  , stdlib/*
 
 common extensions
   default-extensions:
@@ -36,6 +38,7 @@ library
     , parsec
     , transformers
     , haskeline >= 0.8
+    , file-embed
   hs-source-dirs:      src
   default-language:    Haskell2010
 
