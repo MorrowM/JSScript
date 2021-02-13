@@ -43,16 +43,16 @@ stdlibStr = $(embedStringFile "stdlib/prelude.jss")
 
 stdlibIO :: IO VarTable
 stdlibIO = do
+  let baselib =
+        Map.fromList
+          [ ("print", printFunc),
+            ("globals", globalsFunc)
+          ]
   Right stmts <- pure $ parse (many stmt <* eof) "" stdlibStr
-  vtable <- flip execStateT Map.empty $ do
+  vtable <- flip execStateT baselib $ do
     Right res <- runExceptT $ traverse_ exec stmts
     pure ()
-  pure $
-    vtable
-      `Map.union` Map.fromList
-        [ ("print", printFunc),
-          ("globals", globalsFunc)
-        ]
+  pure $ vtable `Map.union` baselib
 
 printFunc :: Any
 printFunc =
