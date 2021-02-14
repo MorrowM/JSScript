@@ -95,3 +95,11 @@ anyToString (ADouble x) = show x
 anyToString (AText x) = show x
 anyToString AFunc {} = "<function>"
 anyToString (AVec x) = "[" <> intercalate "," (anyToString <$> V.toList x) <> "]"
+
+cmpAny :: Any -> Any -> Ordering 
+cmpAny (AInt x) (AInt y) = compare x y
+cmpAny (ABool x) (ABool y) =  compare x y
+cmpAny (ADouble x) (ADouble y) = compare x y
+cmpAny (AText x) (AText y) = compare x y
+cmpAny (AVec x) (AVec y) = V.cmpBy cmpAny x y
+cmpAny _ _ = LT
