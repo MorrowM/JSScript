@@ -127,6 +127,86 @@ eval (ExprProd x y) =
     (AVec a, b) -> fmap AVec $ traverse eval $ flip ExprSum (anyToExpr b) . anyToExpr <$> a
     (a, AVec b) -> fmap AVec $ traverse eval $ ExprSum (anyToExpr a) . anyToExpr <$> b
     (a, b) -> throwE $ "cannot multiply " <> anyToName a <> " with " <> anyToName b
+eval (ExprLess x y) =
+  (,) <$> eval x <*> eval y >>= \case
+    (AInt a, AInt b) -> pure . ABool $ a<b
+    (AInt a, ABool b) -> pure . ABool $ a < fromEnum b
+    (AInt a, ADouble b) -> pure . ABool $ fromIntegral a < b
+    (AInt a, AText b) -> pure . ABool $ showt a < b
+    (ABool a, AInt b) -> pure . ABool $ fromEnum a < b
+    (ABool a, ABool b) -> pure . ABool $ a < b
+    (ABool a, ADouble b) -> pure . ABool $ fromIntegral (fromEnum a) < b
+    (ABool a, AText b) -> pure . ABool $ (if a then "true" else "false") < b
+    (ADouble a, AInt b) -> pure . ABool $ a < fromIntegral b
+    (ADouble a, ABool b) -> pure . ABool $ a < fromIntegral (fromEnum b)
+    (ADouble a, ADouble b) -> pure . ABool $ a < b
+    (ADouble a, AText b) -> pure . ABool $ showt a < b
+    (AText a, AInt b) -> pure . ABool $ a < showt b
+    (AText a, ABool b) -> pure . ABool $ a < (if b then "true" else "false")
+    (AText a, ADouble b) -> pure . ABool $ a < showt b
+    (AText a, AText b) -> pure . ABool $ a < b
+    (AVec a, AVec b) -> pure . ABool $ V.cmpBy cmpAny a b == LT
+    (a, b) -> throwE $ "cannot compare " <> anyToName a <> " with " <> anyToName b
+eval (ExprMore x y) =
+  (,) <$> eval x <*> eval y >>= \case
+    (AInt a, AInt b) -> pure . ABool $ a>b
+    (AInt a, ABool b) -> pure . ABool $ a > fromEnum b
+    (AInt a, ADouble b) -> pure . ABool $ fromIntegral a > b
+    (AInt a, AText b) -> pure . ABool $ showt a > b
+    (ABool a, AInt b) -> pure . ABool $ fromEnum a > b
+    (ABool a, ABool b) -> pure . ABool $ a > b
+    (ABool a, ADouble b) -> pure . ABool $ fromIntegral (fromEnum a) > b
+    (ABool a, AText b) -> pure . ABool $ (if a then "true" else "false") > b
+    (ADouble a, AInt b) -> pure . ABool $ a > fromIntegral b
+    (ADouble a, ABool b) -> pure . ABool $ a > fromIntegral (fromEnum b)
+    (ADouble a, ADouble b) -> pure . ABool $ a > b
+    (ADouble a, AText b) -> pure . ABool $ showt a > b
+    (AText a, AInt b) -> pure . ABool $ a > showt b
+    (AText a, ABool b) -> pure . ABool $ a > (if b then "true" else "false")
+    (AText a, ADouble b) -> pure . ABool $ a > showt b
+    (AText a, AText b) -> pure . ABool $ a > b
+    (AVec a, AVec b) -> pure . ABool $ V.cmpBy cmpAny a b == GT
+    (a, b) -> throwE $ "cannot compare " <> anyToName a <> " with " <> anyToName b
+eval (ExprLessEq x y) =
+  (,) <$> eval x <*> eval y >>= \case
+    (AInt a, AInt b) -> pure . ABool $ a<=b
+    (AInt a, ABool b) -> pure . ABool $ a <= fromEnum b
+    (AInt a, ADouble b) -> pure . ABool $ fromIntegral a <= b
+    (AInt a, AText b) -> pure . ABool $ showt a <= b
+    (ABool a, AInt b) -> pure . ABool $ fromEnum a <= b
+    (ABool a, ABool b) -> pure . ABool $ a <= b
+    (ABool a, ADouble b) -> pure . ABool $ fromIntegral (fromEnum a) <= b
+    (ABool a, AText b) -> pure . ABool $ (if a then "true" else "false") <= b
+    (ADouble a, AInt b) -> pure . ABool $ a <= fromIntegral b
+    (ADouble a, ABool b) -> pure . ABool $ a <= fromIntegral (fromEnum b)
+    (ADouble a, ADouble b) -> pure . ABool $ a <= b
+    (ADouble a, AText b) -> pure . ABool $ showt a <= b
+    (AText a, AInt b) -> pure . ABool $ a <= showt b
+    (AText a, ABool b) -> pure . ABool $ a <= (if b then "true" else "false")
+    (AText a, ADouble b) -> pure . ABool $ a <= showt b
+    (AText a, AText b) -> pure . ABool $ a <= b
+    (AVec a, AVec b) -> pure . ABool $ V.cmpBy cmpAny a b == LT || V.cmpBy cmpAny a b == EQ
+    (a, b) -> throwE $ "cannot compare " <> anyToName a <> " with " <> anyToName b
+eval (ExprMoreEq x y) =
+  (,) <$> eval x <*> eval y >>= \case
+    (AInt a, AInt b) -> pure . ABool $ a>=b
+    (AInt a, ABool b) -> pure . ABool $ a >= fromEnum b
+    (AInt a, ADouble b) -> pure . ABool $ fromIntegral a >= b
+    (AInt a, AText b) -> pure . ABool $ showt a >= b
+    (ABool a, AInt b) -> pure . ABool $ fromEnum a >= b
+    (ABool a, ABool b) -> pure . ABool $ a >= b
+    (ABool a, ADouble b) -> pure . ABool $ fromIntegral (fromEnum a) >= b
+    (ABool a, AText b) -> pure . ABool $ (if a then "true" else "false") >= b
+    (ADouble a, AInt b) -> pure . ABool $ a >= fromIntegral b
+    (ADouble a, ABool b) -> pure . ABool $ a >=fromIntegral (fromEnum b)
+    (ADouble a, ADouble b) -> pure . ABool $ a >= b
+    (ADouble a, AText b) -> pure . ABool $ showt a >= b
+    (AText a, AInt b) -> pure . ABool $ a >= showt b
+    (AText a, ABool b) -> pure . ABool $ a >= (if b then "true" else "false")
+    (AText a, ADouble b) -> pure . ABool $ a >= showt b
+    (AText a, AText b) -> pure . ABool $ a >= b
+    (AVec a, AVec b) -> pure . ABool $ V.cmpBy cmpAny a b == GT || V.cmpBy cmpAny a b == EQ
+    (a, b) -> throwE $ "cannot compare " <> anyToName a <> " with " <> anyToName b
 eval (ExprEqual x y) =
   (,) <$> eval x <*> eval y >>= \case
     (AInt a, AInt b) -> pure . ABool $ a == b
