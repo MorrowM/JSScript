@@ -1,12 +1,9 @@
 module Language.JSScript.Parser where
 
-import Control.Applicative (liftA2)
-import Data.Char
-import Data.Functor.Identity
 import Data.Text (Text, pack)
+import qualified Data.Vector as V
 import Language.JSScript.AST
 import Text.Parsec
-import Text.Parsec.Char
 import Text.Parsec.Language
 import Text.Parsec.String
 import qualified Text.Parsec.Token as P
@@ -77,9 +74,10 @@ exprList :: Parser ExprList
 exprList = parens (commaSep expr)
 
 lit :: Parser Lit
-lit = (LitText <$> litText) <|> try litBool <|> try (LitDouble <$> litDouble) <|> (LitInt . fromInteger <$> litInt)
+lit = (LitText <$> litText) <|> try litBool <|> try (LitDouble <$> litDouble) <|> (LitInt . fromInteger <$> litInt) <|> litVec
   where
     litBool = LitBool <$> ((True <$ symbol "true") <|> (False <$ symbol "false"))
+    litVec = LitVec . V.fromList . fmap ExprLit <$> between (symbol "[") (symbol "]") (commaSep lit)
 
 expr :: Parser Expr
 expr = exprEqual

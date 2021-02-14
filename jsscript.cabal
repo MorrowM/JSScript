@@ -22,9 +22,14 @@ common extensions
     , LambdaCase
     , TypeApplications
 
+common options
+  ghc-options:
+    -Wall
+
 library
   import:
     extensions
+    , options
   exposed-modules:
     Language.JSScript
     , Language.JSScript.AST
@@ -39,6 +44,7 @@ library
     , transformers
     , haskeline >= 0.8
     , file-embed
+    , vector
   hs-source-dirs:      src
   default-language:    Haskell2010
 
@@ -46,6 +52,7 @@ library
 executable jsscript
   import:
     extensions
+    , options
   main-is:             Main.hs
   -- other-modules:
   -- other-extensions:
@@ -56,6 +63,7 @@ executable jsscript
 executable jssbot
   import:
     extensions
+    , options
   main-is:             Main.hs
   -- other-modules:
   -- other-extensions:
@@ -71,6 +79,7 @@ executable jssbot
 test-suite jsscript-test
   import:
     extensions
+    , options
   default-language:    Haskell2010
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test

@@ -4,6 +4,7 @@ import Control.Monad.Trans.Except
 import Control.Monad.Trans.State
 import qualified Data.Map as Map
 import Data.Text (Text)
+import qualified Data.Vector as V
 
 type VarTable = Map.Map Ident Any
 
@@ -30,6 +31,7 @@ data Lit
   | LitDouble Double
   | LitText Text
   | LitBool Bool
+  | LitVec (V.Vector Expr)
   deriving (Eq, Show)
 
 data Stmt
@@ -43,7 +45,7 @@ data Stmt
   | StmtFuncCall Ident ExprList
   | StmtBreak
   | StmtForeign ExprList Foreign
-  | StmtImport FilePath 
+  | StmtImport FilePath
   deriving (Eq, Show)
 
 data Expr
@@ -63,6 +65,7 @@ data Any
   | ABool Bool
   | ADouble Double
   | AText Text
+  | AVec (V.Vector Any)
   | AFunc ArgList Block Expr
   deriving (Eq, Show)
 
@@ -73,3 +76,13 @@ anyToExpr = \case
   ADouble x -> ExprLit $ LitDouble x
   AText x -> ExprLit $ LitText x
   AFunc {} -> ExprLit $ LitText "<function>"
+  AVec x -> ExprLit $ LitVec (anyToExpr <$> x)
+
+anyToName :: Any -> Text
+anyToName = \case
+  AInt _ -> "int"
+  ABool _ -> "bool"
+  ADouble _ -> "double"
+  AText _ -> "string"
+  AFunc {} -> "function"
+  AVec _ -> "array"

@@ -9,10 +9,9 @@ import Control.Monad.Trans.Except
 import Control.Monad.Trans.State
 import Data.FileEmbed
 import Data.Foldable
-import Data.Functor
 import qualified Data.Map as Map
-import Data.Text (Text, pack, unpack)
-import qualified Data.Text as T
+import Data.Text (Text, unpack)
+import qualified Data.Vector as V
 import Language.JSScript.AST
 import Language.JSScript.Interpreter
 import Language.JSScript.Parser
@@ -50,7 +49,7 @@ stdlibIO = do
           ]
   Right stmts <- pure $ parse (many stmt <* eof) "" stdlibStr
   vtable <- flip execStateT baselib $ do
-    Right res <- runExceptT $ traverse_ exec stmts
+    Right _ <- runExceptT $ traverse_ exec stmts
     pure ()
   pure $ vtable `Map.union` baselib
 
@@ -82,20 +81,21 @@ anyToString (ABool x) = if x then "true" else "false"
 anyToString (ADouble x) = show x
 anyToString (AText x) = show x
 anyToString AFunc {} = "<function>"
+anyToString (AVec x) = show $ V.toList x
 
 handleErrorsInteractive_ :: MonadIO m => ExceptT Text m () -> InputT m ()
 handleErrorsInteractive_ e = do
   res <- lift $ runExceptT e
   case res of
     Left err -> outputStrLn $ unpack err
-    Right res -> pure res
+    Right res' -> pure res'
 
 handleErrorsInteractive :: MonadIO m => ExceptT Text m Any -> InputT m ()
 handleErrorsInteractive e = do
   res <- lift $ runExceptT e
   case res of
     Left err -> outputStrLn $ "error: " <> unpack err
-    Right res -> outputStrLn $ anyToString res
+    Right res' -> outputStrLn $ anyToString res'
 
 interactive :: StateT VarTable IO ()
 interactive = runInputT defaultSettings loop
