@@ -18,7 +18,6 @@ import Language.JSScript.Parser
 import System.Console.Haskeline
 import System.Environment
 import Text.Parsec
-import Data.List
 
 main :: IO ()
 main = do
@@ -77,23 +76,19 @@ globalsFunc =
     ]
     (ExprVar "globals_var")
 
-lengthFunc :: Any 
-lengthFunc = AFunc ["arr"] 
-  [ StmtForeign [ExprVar "arr"] $ Foreign $ \arr -> do
-    val <- annotate "incorrect number of arguments passed to length" $ case arr of { [x] -> Just x ; _ -> Nothing }
-    res <- case val of
-      AVec v -> pure $ V.length v
-      _ -> throwE "cannot get length of a non-array"
-    exec $ StmtDeclare "arr_length" (ExprLit $ LitInt res)
-  ] (ExprVar "arr_length")
-
-anyToString :: Any -> String
-anyToString (AInt x) = show x
-anyToString (ABool x) = if x then "true" else "false"
-anyToString (ADouble x) = show x
-anyToString (AText x) = show x
-anyToString AFunc {} = "<function>"
-anyToString (AVec x) = "[" <> intercalate "," (anyToString <$> V.toList x) <> "]"
+lengthFunc :: Any
+lengthFunc =
+  AFunc
+    ["arr"]
+    [ StmtForeign [ExprVar "arr"] $
+        Foreign $ \arr -> do
+          val <- annotate "incorrect number of arguments passed to length" $ case arr of [x] -> Just x; _ -> Nothing
+          res <- case val of
+            AVec v -> pure $ V.length v
+            _ -> throwE "cannot get length of a non-array"
+          exec $ StmtDeclare "arr_length" (ExprLit $ LitInt res)
+    ]
+    (ExprVar "arr_length")
 
 handleErrorsInteractive_ :: MonadIO m => ExceptT Text m () -> InputT m ()
 handleErrorsInteractive_ e = do
