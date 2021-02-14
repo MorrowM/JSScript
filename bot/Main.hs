@@ -5,7 +5,6 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
-import Data.Foldable
 import Data.Maybe
 import Data.Text (Text, pack, unpack)
 import qualified Data.Text.IO as T
@@ -57,7 +56,7 @@ eventHandler (MessageCreate m) = do
         let actions = mapMaybe parseBlock blocks
             prog = traverse (evalToDiscord dis (messageChannel m)) actions
         stdlib <- liftIO stdlibIO
-        merr <- liftIO $ timeout (10 ^ 7) $ evalStateT (runExceptT prog) stdlib
+        merr <- liftIO $ timeout (10 ^ (7 :: Int)) $ evalStateT (runExceptT prog) stdlib
         case merr of
           Nothing -> void $ restCall $ CreateMessage (messageChannel m) "```[computation timed out]```"
           Just (Left err) -> void $ restCall $ CreateMessage (messageChannel m) $ "```error: " <> err <> "```"
@@ -70,6 +69,7 @@ eventHandler (MessageCreate m) = do
             Left _ -> case parse (many1 stmt <* eof) "jssbot" b of
               Left _ -> Nothing
               Right s -> Just $ Right (StmtBlock s)
+eventHandler _ = pure ()
 
 evalToDiscord :: DiscordHandle -> ChannelId -> Either Expr Stmt -> EvalM ()
 evalToDiscord dis ch runme = do
