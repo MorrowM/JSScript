@@ -95,7 +95,11 @@ expr = exprEqual
     exprProd = foldr1 ExprProd <$> sepBy1 exprSimple (symbol "*")
     exprDiv = foldr1 ExprDiv <$> sepBy1 exprProd (symbol "/")
     exprSum = foldr1 ExprSum <$> sepBy1 exprDiv (symbol "+")
-    exprNEqual = foldr1 ExprNEqual <$> sepBy1 exprSum (symbol "!=")
+    exprLess = foldr1 ExprLess <$> sepBy1 exprSum (symbol "<")
+    exprMore = foldr1 ExprMore <$> sepBy1 exprLess (symbol ">")
+    exprLessEq = foldr1 ExprLessEq <$> sepBy1 exprMore (symbol "<=")
+    exprMoreEq = foldr1 ExprMoreEq <$> sepBy1 exprLessEq (symbol ">=")
+    exprNEqual = foldr1 ExprNEqual <$> sepBy1 exprMoreEq (symbol "!=")
     exprEqual = foldr1 ExprEqual <$> sepBy1 exprNEqual (symbol "==")
 
 stmt :: Parser Stmt
