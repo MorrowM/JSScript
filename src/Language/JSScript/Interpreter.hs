@@ -149,6 +149,12 @@ eval (ExprNEqual x y) =
   eval (ExprEqual x y) >>= \case
     ABool b -> pure . ABool $ not b
     _ -> throwE "the impossible happened!"
+eval (ExprIndex x i) =
+  (,) <$> eval x <*> eval i >>= \case
+    (AText str, AInt idx)
+      | idx >= T.length str || idx < 0 -> throwE $ "index " <> str <> "[" <> showt idx <>"] is out of range"
+      | otherwise -> pure . AText . T.singleton $ T.index str idx
+    _ -> throwE "invalid index operation"
 
 exec :: Stmt -> EvalM ()
 exec (StmtBlock x) = traverse_ exec x

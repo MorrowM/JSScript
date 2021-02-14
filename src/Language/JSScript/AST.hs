@@ -50,6 +50,7 @@ data Expr
   = ExprLit Lit
   | ExprVar Ident
   | ExprFuncCall Ident ExprList
+  | ExprIndex Expr Expr
   | ExprSum Expr Expr
   | ExprDiv Expr Expr
   | ExprProd Expr Expr
