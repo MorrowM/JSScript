@@ -59,6 +59,10 @@ data Expr
   | ExprProd Expr Expr
   | ExprEqual Expr Expr
   | ExprNEqual Expr Expr
+  | ExprLess Expr Expr
+  | ExprMore Expr Expr
+  | ExprLessEq Expr Expr
+  | ExprMoreEq Expr Expr
   deriving (Eq, Show)
 
 data Any
