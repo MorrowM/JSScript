@@ -46,7 +46,8 @@ stdlibIO = do
   let baselib =
         Map.fromList
           [ ("print", printFunc),
-            ("globals", globalsFunc)
+            ("globals", globalsFunc),
+            ("length", lengthFunc)
           ]
   Right stmts <- pure $ parse (many stmt <* eof) "" stdlibStr
   vtable <- flip execStateT baselib $ do
@@ -75,6 +76,16 @@ globalsFunc =
         )
     ]
     (ExprVar "globals_var")
+
+lengthFunc :: Any 
+lengthFunc = AFunc ["arr"] 
+  [ StmtForeign [ExprVar "arr"] $ Foreign $ \arr -> do
+    val <- annotate "incorrect number of arguments passed to length" $ case arr of { [x] -> Just x ; _ -> Nothing }
+    res <- case val of
+      AVec v -> pure $ V.length v
+      _ -> throwE "cannot get length of a non-array"
+    exec $ StmtDeclare "arr_length" (ExprLit $ LitInt res)
+  ] (ExprVar "arr_length")
 
 anyToString :: Any -> String
 anyToString (AInt x) = show x
