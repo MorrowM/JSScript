@@ -154,16 +154,13 @@ eval (ExprNEqual x y) =
 eval (ExprIndex x i) =
   (,) <$> eval x <*> eval i >>= \case
     (AText str, AInt idx)
-      | idx >= T.length str || abs idx > T.length str -> throwE $ "index " <> str <> "[" <> showt idx <> "] is out of range"
-      | idx < 0 -> pure . AText . T.singleton $ T.index str (T.length str + idx)
-      | otherwise -> pure . AText . T.singleton $ T.index str idx
-    (AVec v, AInt idx) -> case signum idx of
-      -1 -> case v V.!? (length v + idx) of
-        Nothing -> throwE $ "index " <> showt v <> "[" <> showt idx <> "] is out of range"
+      | T.null str -> throwE "cannot index into an empty string"
+      | otherwise -> pure . AText . T.singleton $ T.index str (idx `mod` T.length str)
+    (AVec v, AInt idx)
+      | V.null v -> throwE "cannot index into an empty array"
+      | otherwise -> case v V.!? (idx `mod` length v) of
         Just a -> pure a
-      _ -> case v V.!? idx of
-        Nothing -> throwE $ "index " <> showt v <> "[" <> showt idx <> "] is out of range"
-        Just a -> pure a
+        Nothing -> throwE $ "index " <> (pack . anyToString $ AVec v) <> "[" <> showt idx <> "] is out of range"
     _ -> throwE "invalid index operation"
 
 exec :: Stmt -> EvalM ()

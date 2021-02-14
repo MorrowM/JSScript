@@ -2,6 +2,7 @@ module Language.JSScript.AST where
 
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.State
+import Data.List
 import qualified Data.Map as Map
 import Data.Text (Text)
 import qualified Data.Vector as V
@@ -86,3 +87,11 @@ anyToName = \case
   AText _ -> "string"
   AFunc {} -> "function"
   AVec _ -> "array"
+
+anyToString :: Any -> String
+anyToString (AInt x) = show x
+anyToString (ABool x) = if x then "true" else "false"
+anyToString (ADouble x) = show x
+anyToString (AText x) = show x
+anyToString AFunc {} = "<function>"
+anyToString (AVec x) = "[" <> intercalate "," (anyToString <$> V.toList x) <> "]"
