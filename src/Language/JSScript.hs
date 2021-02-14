@@ -18,6 +18,7 @@ import Language.JSScript.Parser
 import System.Console.Haskeline
 import System.Environment
 import Text.Parsec
+import Data.List
 
 main :: IO ()
 main = do
@@ -81,7 +82,7 @@ anyToString (ABool x) = if x then "true" else "false"
 anyToString (ADouble x) = show x
 anyToString (AText x) = show x
 anyToString AFunc {} = "<function>"
-anyToString (AVec x) = show . fmap anyToString $ V.toList x
+anyToString (AVec x) = "[" <> intercalate "," (anyToString <$> V.toList x) <> "]"
 
 handleErrorsInteractive_ :: MonadIO m => ExceptT Text m () -> InputT m ()
 handleErrorsInteractive_ e = do
